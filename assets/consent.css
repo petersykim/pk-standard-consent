@@ -92,6 +92,10 @@
     margin: 0 auto;
     display: flex;
     align-items: flex-start;
+    /* Without wrap, __actions (flex-shrink: 0) never yields width to __copy on a narrow
+       viewport, pushing its buttons off-canvas (measured live: "Accept all" overflowed the
+       360px viewport by 52px). Wrapping drops __actions to its own line below the copy. */
+    flex-wrap: wrap;
     gap: calc(var(--pk-sc-spacing) * 8);
 }
 
@@ -123,8 +127,12 @@
     display: flex;
     align-items: center;
     gap: calc(var(--pk-sc-spacing) * 2);
-    flex-shrink: 0;
     flex-wrap: wrap;
+    /* max-width: 100% (not flex-shrink: 0's un-shrinkable natural width) lets this row
+       actually respect the flex container's available width so flex-wrap can engage —
+       flex-shrink: 0 alone kept it pinned to its 3-buttons-unwrapped width at every
+       viewport, overflowing the page by 20px at 360px (measured live). */
+    max-width: 100%;
 }
 
 /* Opt-out inline toggles */
