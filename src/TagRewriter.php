@@ -31,6 +31,9 @@ final class TagRewriter
     /** @var list<array{category: string, signatures: list<string>}> */
     private array $providerSignatures = [];
 
+    /** @var list<array{category: string, signatures: list<string>}> */
+    private array $embedSignatures = [];
+
     /**
      * Opens the page-wide output buffer on template_redirect.
      * No-op for feeds, REST, and admin so only real front-end HTML is rewritten.
@@ -42,6 +45,7 @@ final class TagRewriter
         }
         $this->grants             = $this->resolveGrants();
         $this->providerSignatures = $this->loadProviderSignatures();
+        $this->embedSignatures    = $this->loadEmbedSignatures();
         ob_start( [ $this, 'rewrite' ] );
     }
 
@@ -51,19 +55,31 @@ final class TagRewriter
      */
     public function rewrite( string $html ): string
     {
-        if ( '' === $html || false === stripos( $html, '<script' ) ) {
+        if ( '' === $html ) {
             return $html;
         }
 
-        // NB: the lazy body terminates at the first `</script>`, which is EXACTLY how an HTML
-        // parser behaves — a raw `</script>` cannot appear inside an inline script body (it must
-        // be escaped `<\/script>`), so the browser ends the script there too. (Round-1 audit F1
-        // flagged this as truncation; it is spec-correct HTML parsing, not a defect.)
-        return (string) preg_replace_callback(
-            '#<script\b([^>]*)>(.*?)</script>#is',
-            [ $this, 'rewriteTag' ],
-            $html
-        );
+        if ( false !== stripos( $html, '<script' ) ) {
+            // NB: the lazy body terminates at the first `</script>`, which is EXACTLY how an HTML
+            // parser behaves — a raw `</script>` cannot appear inside an inline script body (it must
+            // be escaped `<\/script>`), so the browser ends the script there too. (Round-1 audit F1
+            // flagged this as truncation; it is spec-correct HTML parsing, not a defect.)
+            $html = (string) preg_replace_callback(
+                '#<script\b([^>]*)>(.*?)</script>#is',
+                [ $this, 'rewriteTag' ],
+                $html
+            );
+        }
+
+        if ( false !== stripos( $html, '<iframe' ) ) {
+            $html = (string) preg_replace_callback(
+                '#<iframe\b([^>]*)>(.*?)</iframe>#is',
+                [ $this, 'rewriteIframe' ],
+                $html
+            );
+        }
+
+        return $html;
     }
 
     /**
@@ -141,6 +157,106 @@ final class TagRewriter
         return $out;
     }
 
+    /**
+     * @param array{0: string, 1: string, 2: string} $m  [full, attrs, body]
+     */
+    private function rewriteIframe( array $m ): string
+    {
+        $attrs = $m[1];
+
+        $category = $this->matchEmbedCategory( $attrs );
+        if ( null === $category || $this->isGranted( $category ) ) {
+            return $m[0];
+        }
+
+        return $this->renderEmbedPlaceholder( $attrs, $category );
+    }
+
+    /**
+     * Resolves an iframe's gate category from either its src (EmbedMap signature) or an
+     * explicit data-pk-sc-category attribute. Returns null when the iframe isn't gateable.
+     * Precedence matches matchCategory() for scripts: explicit attribute first.
+     */
+    private function matchEmbedCategory( string $attrs ): ?string
+    {
+        $explicit = $this->attrValue( $attrs, 'data-pk-sc-category' );
+        if ( '' !== $explicit ) {
+            $cat = Category::tryFrom( $explicit );
+            return ( null !== $cat && $cat->isGateable() ) ? $cat->value : null;
+        }
+
+        $src = $this->attrValue( $attrs, 'src' );
+        if ( '' === $src ) {
+            return null;
+        }
+        foreach ( $this->embedSignatures as $provider ) {
+            foreach ( $provider['signatures'] as $sig ) {
+                if ( str_contains( $src, $sig ) ) {
+                    return $provider['category'];
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Builds the placeholder markup that replaces a gated iframe. The original attribute
+     * string is preserved (base64) so the gate JS can rebuild the real iframe from an
+     * attribute allowlist on grant, without ever re-parsing untrusted HTML.
+     */
+    private function renderEmbedPlaceholder( string $attrs, string $category ): string
+    {
+        $src   = $this->attrValue( $attrs, 'src' );
+        $ratio = $this->resolveRatio( $attrs );
+
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- carries opaque markup, not obfuscating anything
+        $attrsB64 = base64_encode( $attrs );
+
+        $label = Category::from( $category )->value;
+        /* translators: %s: consent category label (e.g. "marketing") */
+        $message = sprintf(
+            __( 'This embedded content is blocked until you allow %s cookies.', 'pk-standard-consent' ),
+            $label
+        );
+        /* translators: %s: consent category label (e.g. "marketing") */
+        $allow_label = sprintf(
+            __( 'Allow %s cookies & load', 'pk-standard-consent' ),
+            $label
+        );
+
+        // The --pk-sc-ratio custom property must be inline: each embed instance can carry a
+        // different aspect ratio (from its own width/height attrs), which a static stylesheet
+        // cannot express per-element.
+        $out  = '<div class="pk-sc-embed" data-pk-sc-category="' . esc_attr( $category ) . '"';
+        $out .= ' data-pk-sc-src="' . esc_attr( $src ) . '"';
+        $out .= ' data-pk-sc-attrs="' . esc_attr( $attrsB64 ) . '"';
+        $out .= ' style="--pk-sc-ratio: ' . esc_attr( $ratio ) . '">';
+        $out .= '<div class="pk-sc-embed__body">';
+        $out .= '<svg class="pk-sc-embed__icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+        $out .= '<p class="pk-sc-embed__message">' . esc_html( $message ) . '</p>';
+        $out .= '<div class="pk-sc-embed__actions">';
+        $out .= '<button class="pk-sc-btn pk-sc-btn--primary" type="button" data-pk-sc="embed-allow">' . esc_html( $allow_label ) . '</button>';
+        $out .= '<button class="pk-sc-btn pk-sc-btn--ghost" type="button" data-pk-sc="embed-prefs">' . esc_html__( 'Manage preferences', 'pk-standard-consent' ) . '</button>';
+        $out .= '</div>';
+        $out .= '</div>';
+        $out .= '</div>';
+
+        return $out;
+    }
+
+    /**
+     * Reads width/height attrs; both must be numeric to use them, else default to 16/9.
+     */
+    private function resolveRatio( string $attrs ): string
+    {
+        $width  = $this->attrValue( $attrs, 'width' );
+        $height = $this->attrValue( $attrs, 'height' );
+        if ( is_numeric( $width ) && is_numeric( $height ) && (float) $height > 0.0 ) {
+            return $width . '/' . $height;
+        }
+        return '16/9';
+    }
+
     private function attrValue( string $attrs, string $name ): string
     {
         if ( ! preg_match( '#\b' . preg_quote( $name, '#' ) . '\s*=\s*("([^"]*)"|\'([^\']*)\')#i', $attrs, $mm ) ) {
@@ -179,6 +295,30 @@ final class TagRewriter
     {
         $out = [];
         foreach ( CookieMap::providers() as $provider ) {
+            $category = is_string( $provider['category'] ?? null ) ? $provider['category'] : '';
+            $cat      = Category::tryFrom( $category );
+            if ( null === $cat || ! $cat->isGateable() ) {
+                continue;
+            }
+            $signatures = [];
+            foreach ( (array) ( $provider['signatures'] ?? [] ) as $sig ) {
+                if ( is_string( $sig ) && '' !== $sig ) {
+                    $signatures[] = $sig;
+                }
+            }
+            $out[] = [
+                'category'   => $cat->value,
+                'signatures' => $signatures,
+            ];
+        }
+        return $out;
+    }
+
+    /** @return list<array{category: string, signatures: list<string>}> */
+    private function loadEmbedSignatures(): array
+    {
+        $out = [];
+        foreach ( EmbedMap::providers() as $provider ) {
             $category = is_string( $provider['category'] ?? null ) ? $provider['category'] : '';
             $cat      = Category::tryFrom( $category );
             if ( null === $cat || ! $cat->isGateable() ) {
