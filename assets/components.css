@@ -1088,7 +1088,10 @@ hr { border: 0; height: 1px; background: hsl(var(--pk-border)); margin: 0; }
 /* === Tabs === */
 .tabs {
   display: flex;
-  align-items: center;
+  /* flex-end (not center): <button class="tab"> and <a class="tab"> can compute
+     different heights, and centering floats the shorter one's underline off the
+     container border. Bottom-aligning keeps every underline flush. */
+  align-items: flex-end;
   gap: var(--sp-1);
   border-bottom: 1px solid hsl(var(--pk-border));
 }
@@ -1098,6 +1101,9 @@ hr { border: 0; height: 1px; background: hsl(var(--pk-border)); margin: 0; }
   border: 0;
   padding: var(--sp-3) var(--sp-4);
   font-size: var(--fs-sm);
+  /* explicit: anchors inherit --lh-base (22px) while buttons default smaller,
+     which made mixed button/anchor tab strips uneven heights */
+  line-height: var(--lh-sm);
   font-weight: var(--fw-medium);
   color: hsl(var(--pk-muted));
   cursor: pointer;
