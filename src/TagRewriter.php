@@ -29,10 +29,10 @@ final class TagRewriter
     private array $grants = [];
 
     /** @var list<array{category: string, signatures: list<string>}> */
-    private array $providerSignatures = [];
+    private array $provider_signatures = [];
 
     /** @var list<array{category: string, signatures: list<string>}> */
-    private array $embedSignatures = [];
+    private array $embed_signatures = [];
 
     /**
      * Opens the page-wide output buffer on template_redirect.
@@ -43,9 +43,9 @@ final class TagRewriter
         if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
             return;
         }
-        $this->grants             = $this->resolveGrants();
-        $this->providerSignatures = $this->loadProviderSignatures();
-        $this->embedSignatures    = $this->loadEmbedSignatures();
+        $this->grants              = $this->resolveGrants();
+        $this->provider_signatures = $this->loadProviderSignatures();
+        $this->embed_signatures    = $this->loadEmbedSignatures();
         ob_start( [ $this, 'rewrite' ] );
     }
 
@@ -119,7 +119,7 @@ final class TagRewriter
         if ( '' === $src ) {
             return null;
         }
-        foreach ( $this->providerSignatures as $provider ) {
+        foreach ( $this->provider_signatures as $provider ) {
             foreach ( $provider['signatures'] as $sig ) {
                 if ( str_contains( $src, $sig ) ) {
                     return $provider['category'];
@@ -138,7 +138,7 @@ final class TagRewriter
     {
         $src = $this->attrValue( $attrs, 'src' );
 
-        $out  = '<script type="text/plain" data-pk-sc-category="' . esc_attr( $category ) . '"';
+        $out = '<script type="text/plain" data-pk-sc-category="' . esc_attr( $category ) . '"';
         if ( '' !== $src ) {
             $out .= ' data-pk-sc-src="' . esc_url( $src ) . '"';
         }
@@ -189,7 +189,7 @@ final class TagRewriter
         if ( '' === $src ) {
             return null;
         }
-        foreach ( $this->embedSignatures as $provider ) {
+        foreach ( $this->embed_signatures as $provider ) {
             foreach ( $provider['signatures'] as $sig ) {
                 if ( str_contains( $src, $sig ) ) {
                     return $provider['category'];
@@ -210,16 +210,16 @@ final class TagRewriter
         $ratio = $this->resolveRatio( $attrs );
 
         // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- carries opaque markup, not obfuscating anything
-        $attrsB64 = base64_encode( $attrs );
+        $attrs_b64 = base64_encode( $attrs );
 
-        $label = Category::from( $category )->value;
-        /* translators: %s: consent category label (e.g. "marketing") */
+        $label   = Category::from( $category )->value;
         $message = sprintf(
+            /* translators: %s: consent category label (e.g. "marketing") */
             __( 'This embedded content is blocked until you allow %s cookies.', 'pk-standard-consent' ),
             $label
         );
-        /* translators: %s: consent category label (e.g. "marketing") */
         $allow_label = sprintf(
+            /* translators: %s: consent category label (e.g. "marketing") */
             __( 'Allow %s cookies & load', 'pk-standard-consent' ),
             $label
         );
@@ -229,7 +229,7 @@ final class TagRewriter
         // cannot express per-element.
         $out  = '<div class="pk-sc-embed" data-pk-sc-category="' . esc_attr( $category ) . '"';
         $out .= ' data-pk-sc-src="' . esc_attr( $src ) . '"';
-        $out .= ' data-pk-sc-attrs="' . esc_attr( $attrsB64 ) . '"';
+        $out .= ' data-pk-sc-attrs="' . esc_attr( $attrs_b64 ) . '"';
         $out .= ' style="--pk-sc-ratio: ' . esc_attr( $ratio ) . '">';
         $out .= '<div class="pk-sc-embed__body">';
         $out .= '<svg class="pk-sc-embed__icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
