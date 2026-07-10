@@ -106,6 +106,12 @@ body:has(.pk-root) .wrap > .pk-license-notice .pk-license-notice__btn {
 .pk-root .mono, .pk-root code, .pk-root pre, .pk-root kbd {
   font-family: var(--font-mono);
 }
+/* Icon fonts must survive the sans-stack force above — dashicons glyphs otherwise
+   render as the font's fallback boxes (every menu-tree icon became a hamburger). */
+.pk-root .dashicons,
+.pk-root .dashicons-before::before {
+  font-family: dashicons !important;
+}
 
 /* ---------------------------------------------------------------------------
  * 4. wp-admin bleed fixes — generalized from branding's proven #pk-sb-app rules
