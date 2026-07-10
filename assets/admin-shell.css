@@ -67,6 +67,20 @@ body:has(.pk-root) .wrap > .notice.notice-pk {
   border-radius: var(--r-md) !important;
   border-left-width: 4px !important;
 }
+/* The dismissible license notice: message + button on ONE row (button beside the
+   text, right-aligned, vertically centered) — not the button stacked below. */
+body:has(.pk-root) .wrap > .pk-license-notice {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--sp-3) !important;
+}
+body:has(.pk-root) .wrap > .pk-license-notice .pk-license-notice__msg {
+  flex: 1 1 auto !important;
+}
+body:has(.pk-root) .wrap > .pk-license-notice .pk-license-notice__btn {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+}
 
 /* ---------------------------------------------------------------------------
  * 3. The app canvas + base typography. This is the ONE place base font/size/
@@ -142,6 +156,11 @@ body:has(.pk-root) .wrap > .notice.notice-pk {
   cursor: pointer !important;
   flex-shrink: 0 !important;
 }
+/* .checkbox is a NATIVE <input type="checkbox"> — and native inputs cannot render
+   ::after reliably (components.css tries `.checkbox:checked::after`, which shows as
+   a broken/ghost glyph). So the tick MUST be painted as a background-image on the
+   input itself (branding's proven approach). We also kill the components ::after
+   below so there is exactly ONE checkmark. */
 .pk-root .checkbox:checked {
   background: hsl(var(--pk-accent)) !important;
   border-color: hsl(var(--pk-accent)) !important;
@@ -150,7 +169,19 @@ body:has(.pk-root) .wrap > .notice.notice-pk {
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
+/* Kill the components.css ::after tick — it doesn't render on a native input and
+   causes the ghost/double glyph. Background-image above is the real checkmark. */
+.pk-root .checkbox:checked::after { content: none !important; display: none !important; }
 .pk-root .checkbox:hover { border-color: hsl(var(--pk-accent)) !important; }
+/* A DISABLED-but-checked box (e.g. maintenance "Default to ON") must still read
+   as a CRISP white tick on solid teal — do NOT let a generic :disabled opacity
+   wash it into a muddy grey glyph. Full opacity, solid teal, just not-allowed. */
+.pk-root .checkbox:disabled { opacity: 1 !important; cursor: not-allowed !important; }
+.pk-root .checkbox:checked:disabled {
+  background-color: hsl(var(--pk-accent)) !important;
+  border-color: hsl(var(--pk-accent)) !important;
+  opacity: 1 !important;
+}
 
 /* .switch pill toggle — neutralize wp-admin ::before content bleed */
 .pk-root .switch {
@@ -170,4 +201,33 @@ body:has(.pk-root) .wrap > .notice.notice-pk {
 .pk-root .card {
   max-width: none !important;
   width: 100% !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 5. Responsive @782px — chrome-level collapse so a title+buttons row and tab
+ *    strips never overflow the page at mobile widths (390px target). Per-plugin
+ *    two-pane/grid layouts are handled in each plugin's own admin.css.
+ * ------------------------------------------------------------------------- */
+@media screen and (max-width: 782px) {
+  .pk-root .page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .pk-root .page-header__actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+  .pk-root .page-header__actions > * {
+    width: 100% !important;
+  }
+  .pk-root [class*="page-nav"],
+  .pk-root .tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .pk-root .page-body {
+    padding-left: var(--sp-4) !important;
+    padding-right: var(--sp-4) !important;
+  }
 }
