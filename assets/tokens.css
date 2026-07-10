@@ -1,0 +1,160 @@
+/*
+ * PK Standard design tokens.
+ * Scoped under .pk-root so WordPress admin styles never leak in or out.
+ * Light theme default. Dark theme applied via .pk-theme-dark on the root.
+ */
+
+/* Z-index tokens at :root so portalled elements (appended to body) can resolve them. */
+:root {
+  --pk-z-popover: 60;
+}
+
+/* .pk-modal-root: wrapper for modals/portals appended to document.body — they live
+   OUTSIDE .pk-root and would otherwise inherit none of these vars (fields QA-003). */
+.pk-root,
+.pk-modal-root {
+  /* Neutral scale — warm slate */
+  --pk-bg: 210 20% 98%;
+  --pk-surface: 0 0% 100%;
+  --pk-surface-2: 210 16% 96%;
+  --pk-border: 215 16% 88%;
+  --pk-border-strong: 215 14% 76%;
+  --pk-text: 215 25% 15%;
+  --pk-text-2: 215 15% 32%;
+  --pk-muted: 215 12% 42%;
+
+  /* Accent — muted teal (forest lake) */
+  --pk-accent: 182 34% 38%;
+  --pk-accent-hover: 182 38% 32%;
+  --pk-accent-fg: 0 0% 100%;
+  --pk-accent-soft: 182 40% 94%;
+  --pk-accent-tint: 211 100% 97%;
+
+  /* Overlay scrim behind modals/drawers */
+  --pk-overlay: 0 0% 0% / 0.4;
+
+  /* Status */
+  --pk-danger: 358 62% 48%;
+  --pk-danger-soft: 358 70% 96%;
+  --pk-success: 152 42% 38%;
+  --pk-success-soft: 152 45% 94%;
+  --pk-warning: 38 82% 46%;
+  --pk-warning-soft: 38 90% 94%;
+
+  /* Focus ring */
+  --pk-ring: 182 60% 42%;
+
+  /* Swatch palette */
+  --pk-swatch-teal: 182 34% 38%;
+  --pk-swatch-teal-stroke: 182 38% 32%;
+  --pk-swatch-blue: 220 70% 50%;
+  --pk-swatch-blue-stroke: 220 70% 40%;
+  --pk-swatch-amber: 38 82% 46%;
+  --pk-swatch-amber-stroke: 38 82% 36%;
+  --pk-swatch-rose: 358 62% 48%;
+  --pk-swatch-rose-stroke: 358 62% 38%;
+  --pk-swatch-violet: 268 50% 52%;
+  --pk-swatch-violet-stroke: 268 50% 42%;
+
+  /* Typography stack */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type scale */
+  --fs-xs:   11px;  --lh-xs: 16px;
+  --fs-sm:   13px;  --lh-sm: 20px;
+  --fs-base: 14px;  --lh-base: 22px;
+  --fs-md:   15px;  --lh-md: 24px;
+  --fs-lg:   17px;  --lh-lg: 26px;
+  --fs-xl:   20px;  --lh-xl: 28px;
+  --fs-2xl:  24px;  --lh-2xl: 32px;
+  --fs-3xl:  30px;  --lh-3xl: 38px;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* Spacing — 4px base */
+  --sp-0: 0;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* Radii */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --r-pill: 9999px;
+
+  /* Shadows */
+  --sh-sm: 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.08);
+  --sh-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06);
+  --sh-lg: 0 10px 30px rgba(0,0,0,0.10), 0 4px 10px rgba(0,0,0,0.06);
+
+  /* Motion */
+  --t-fast: 120ms;
+  --t-base: 180ms;
+  --t-slow: 260ms;
+  --ease-standard: cubic-bezier(0.2, 0.0, 0.2, 1);
+
+  /* Typography */
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: hsl(var(--pk-text));
+  background: hsl(var(--pk-bg));
+  -webkit-font-smoothing: antialiased;
+
+}
+
+.pk-root.pk-theme-dark {
+  --pk-bg: 215 28% 10%;
+  --pk-surface: 215 24% 14%;
+  --pk-surface-2: 215 22% 17%;
+  --pk-border: 215 18% 24%;
+  --pk-border-strong: 215 16% 34%;
+  --pk-text: 210 20% 95%;
+  --pk-text-2: 215 14% 78%;
+  --pk-muted: 215 10% 60%;
+
+  --pk-accent: 182 38% 52%;
+  --pk-accent-hover: 182 42% 58%;
+  --pk-accent-fg: 215 28% 10%;
+  --pk-accent-soft: 182 30% 20%;
+
+  --pk-danger: 358 62% 62%;
+  --pk-danger-soft: 358 30% 22%;
+  --pk-success: 152 42% 56%;
+  --pk-success-soft: 152 24% 20%;
+  --pk-warning: 38 82% 58%;
+  --pk-warning-soft: 38 30% 22%;
+
+  --pk-ring: 182 60% 56%;
+}
+
+/* Follow WP admin dark mode if the user enabled it there. */
+@media (prefers-color-scheme: dark) {
+  .pk-root:not(.pk-theme-light) {
+    --pk-bg: 215 28% 10%;
+    --pk-surface: 215 24% 14%;
+    --pk-surface-2: 215 22% 17%;
+    --pk-border: 215 18% 24%;
+    --pk-border-strong: 215 16% 34%;
+    --pk-text: 210 20% 95%;
+    --pk-text-2: 215 14% 78%;
+    --pk-muted: 215 10% 60%;
+    --pk-accent: 182 38% 52%;
+    --pk-accent-hover: 182 42% 58%;
+    --pk-accent-fg: 215 28% 10%;
+    --pk-accent-soft: 182 30% 20%;
+    --pk-ring: 182 60% 56%;
+  }
+}

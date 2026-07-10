@@ -18,20 +18,20 @@
 :root {
     /* Surface and border */
     --pk-sc-surface:    var(--pk-surface,   hsl(0 0% 100%));
-    --pk-sc-surface-2:  var(--pk-surface-2, hsl(0 0% 97%));
-    --pk-sc-border:     var(--pk-border,    hsl(0 0% 88%));
+    --pk-sc-surface-2:  var(--pk-surface-2, hsl(210 16% 96%));
+    --pk-sc-border:     var(--pk-border,    hsl(215 16% 88%));
 
     /* Text */
-    --pk-sc-text:   var(--pk-text,   hsl(0 0% 10%));
-    --pk-sc-text-2: var(--pk-text-2, hsl(0 0% 40%));
-    --pk-sc-muted:  var(--pk-muted,  hsl(0 0% 58%));
+    --pk-sc-text:   var(--pk-text,   hsl(215 25% 15%));
+    --pk-sc-text-2: var(--pk-text-2, hsl(215 15% 32%));
+    --pk-sc-muted:  var(--pk-muted,  hsl(215 12% 42%));
 
     /* Accent */
-    --pk-sc-accent:    var(--pk-accent,    hsl(220 90% 50%));
+    --pk-sc-accent:    var(--pk-accent,    hsl(182 34% 38%));
     --pk-sc-accent-fg: var(--pk-accent-fg, hsl(0 0% 100%));
 
     /* Success — "Always active" label */
-    --pk-sc-success: var(--pk-success, hsl(142 70% 35%));
+    --pk-sc-success: var(--pk-success, hsl(152 42% 38%));
 
     /* Shadow */
     --pk-sc-shadow: var(--pk-shadow, hsl(0 0% 0% / 0.08));
@@ -41,8 +41,8 @@
 
     /* Radius */
     --pk-sc-radius-sm: var(--r-sm, 4px);
-    --pk-sc-radius-md: var(--r-md, 8px);
-    --pk-sc-radius-lg: var(--r-lg, 12px);
+    --pk-sc-radius-md: var(--r-md, 6px);
+    --pk-sc-radius-lg: var(--r-lg, 10px);
 
     /* z-index stack */
     --pk-sc-z-overlay: 40;

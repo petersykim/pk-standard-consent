@@ -75,10 +75,17 @@ final class AdminPage
             return is_readable( $file ) ? $base . '.' . filemtime( $file ) : $base;
         };
 
+        // Family stack (same three shared files as every other plugin). Order: tokens ->
+        // SPA bundle -> shared components -> shell, so the shared design system wins any
+        // stale duplicate compiled into the bundle.
+        wp_enqueue_style( 'pk-sc-tokens', plugins_url( 'assets/tokens.css', PK_SC_FILE ), [], $ver( PK_SC_DIR . '/assets/tokens.css' ) );
+        $components_deps = [ 'pk-sc-tokens' ];
         if ( file_exists( $css ) ) {
-            wp_enqueue_style( 'pk-sc-admin', plugins_url( 'assets/dist/admin.css', PK_SC_FILE ), [], $ver( $css ) );
+            wp_enqueue_style( 'pk-sc-admin', plugins_url( 'assets/dist/admin.css', PK_SC_FILE ), [ 'pk-sc-tokens' ], $ver( $css ) );
+            $components_deps = [ 'pk-sc-admin' ];
         }
-        wp_enqueue_style( 'pk-sc-shell', plugins_url( 'assets/admin-shell.css', PK_SC_FILE ), [ 'pk-sc-admin' ], $ver( PK_SC_DIR . '/assets/admin-shell.css' ) );
+        wp_enqueue_style( 'pk-sc-components', plugins_url( 'assets/components.css', PK_SC_FILE ), $components_deps, $ver( PK_SC_DIR . '/assets/components.css' ) );
+        wp_enqueue_style( 'pk-sc-shell', plugins_url( 'assets/admin-shell.css', PK_SC_FILE ), [ 'pk-sc-components' ], $ver( PK_SC_DIR . '/assets/admin-shell.css' ) );
         if ( file_exists( $js ) ) {
             wp_enqueue_script( 'pk-sc-admin', plugins_url( 'assets/dist/admin.js', PK_SC_FILE ), [], $ver( $js ), true );
         }

@@ -8,13 +8,8 @@
 #pk-sc-admin-root { margin: 0 !important; }
 
 /* consent-specific admin overrides */
-.category-card {
-  border-left: 3px solid hsl(var(--pk-border-strong));
-}
-.category-card--necessary { border-left-color: hsl(var(--pk-success)); }
-.category-card--preferences { border-left-color: hsl(var(--pk-accent)); }
-.category-card--analytics { border-left-color: hsl(var(--pk-warning)); }
-.category-card--marketing { border-left-color: hsl(var(--pk-danger)); }
+/* (category cards are plain .card — the per-category colored left stripe was removed:
+   decorative accent bars are banned across the family) */
 
 .script-handle {
   font-family: var(--font-mono);
@@ -77,39 +72,6 @@
   border-radius: var(--r-sm);
 }
 
-/* wp-admin styles every input[type=checkbox] (16x16, blue border, a ::before checkmark on
-   :checked). The @pk/ui .switch and .checkbox ARE checkboxes, so wp-admin bled a blue border
-   and a second checkmark onto them. Fully neutralize wp-admin here, scoped to the admin root. */
-#pk-sc-admin-root .switch {
-  appearance: none !important;
-  width: 36px !important;
-  height: 20px !important;
-  min-width: 36px !important;
-  border: 0 !important;
-  border-radius: var(--r-pill) !important;
-  background: hsl(var(--pk-border-strong)) !important;
-  box-shadow: none !important;
-}
-#pk-sc-admin-root .switch:checked {
-  background: hsl(var(--pk-accent)) !important;
-  border: 0 !important;
-}
-#pk-sc-admin-root .switch::before,
-#pk-sc-admin-root .checkbox::before {
-  content: none !important;
-  display: none !important;
-  background: none !important;
-}
-#pk-sc-admin-root .checkbox {
-  appearance: none !important;
-  width: 16px !important;
-  height: 16px !important;
-  border-radius: var(--r-sm) !important;
-  background: hsl(var(--pk-surface)) !important;
-  border: 1px solid hsl(var(--pk-border-strong)) !important;
-  box-shadow: none !important;
-}
-#pk-sc-admin-root .checkbox:checked {
-  background: hsl(var(--pk-accent)) !important;
-  border-color: hsl(var(--pk-accent)) !important;
-}
+/* wp-admin checkbox/switch neutralization now lives in the SHARED admin-shell.css
+   (.pk-root .switch / .pk-root .checkbox) — the local duplicate was removed when
+   consent joined the family stack. */

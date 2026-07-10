@@ -183,6 +183,20 @@ body:has(.pk-root) .wrap > .pk-license-notice .pk-license-notice__btn {
   opacity: 1 !important;
 }
 
+/* Page title — wp-admin's `.wrap h1 { font-size: 23px; font-weight: 400 }` (0,1,1)
+   beats components' `.page-header__title` (0,1,0); re-assert the design system here. */
+.pk-root .page-header__title {
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-2xl);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.015em;
+}
+/* Anchor tabs — wp-admin colors `#wpbody-content a` via an ID selector that beats any
+   class rule; re-assert the tab palette above it so <a class="tab"> matches <button>. */
+#wpbody-content .pk-root a.tab { color: hsl(var(--pk-muted)); text-decoration: none; }
+#wpbody-content .pk-root a.tab:hover { color: hsl(var(--pk-text)); }
+#wpbody-content .pk-root a.tab.is-active { color: hsl(var(--pk-accent-hover)); }
+
 /* .switch pill toggle — neutralize wp-admin ::before content bleed */
 .pk-root .switch {
   display: block !important;
@@ -192,10 +206,35 @@ body:has(.pk-root) .wrap > .pk-license-notice .pk-license-notice__btn {
   border-radius: var(--r-pill) !important;
   border: none !important;
   flex-shrink: 0 !important;
+  /* OFF track. Without an explicit background, wp-admin's input:checked rule paints
+     the pill with --wp-admin-theme-color (terracotta on dev's "modern" scheme). */
+  background: hsl(var(--pk-border-strong)) !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  cursor: pointer !important;
+  transition: background var(--t-fast) var(--ease-standard) !important;
 }
+.pk-root .switch:checked {
+  background: hsl(var(--pk-accent)) !important;
+}
+/* the knob */
+.pk-root .switch::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  transition: transform var(--t-fast) var(--ease-standard) !important;
+}
+.pk-root .switch:checked::after { transform: translateX(16px) !important; }
 .pk-root .switch::before { content: none !important; }
 
-.pk-root button { box-shadow: none !important; }
+/* Kill wp-admin's button chrome — but never the design system's own buttons
+   (.btn carries --sh-sm on primary; .icon-btn styles its own states). */
+.pk-root button:not(.btn):not(.icon-btn) { box-shadow: none !important; }
 
 /* wp-admin .card override (max-width:520px etc.) */
 .pk-root .card {
