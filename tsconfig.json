@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@pk/ui": ["../_shared/ui/src/index.ts"]
+    }
+  },
+  "include": [
+    "assets/admin/src",
+    "vite.config.ts",
+    "tailwind.config.ts"
+  ]
+}

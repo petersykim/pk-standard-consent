@@ -1,0 +1,171 @@
+/*
+ * admin-shell.css — the ONE wp-admin chrome reset + notice zone for every pk-standard plugin.
+ *
+ * Consumed by all plugins (copied into each plugin's assets/ at build from _shared/ui). It replaces
+ * the per-plugin `admin.css` chrome resets that were each scoped to a private app-root id
+ * (#pk-sb-app, #pk-sr-app, …) with 606 total !important reimplementing the same rules. Here it is
+ * written ONCE, keyed off `.pk-root` (the class every plugin puts on its app-root) and
+ * `body:has(.pk-root)` (for the wp-admin chrome around it).
+ *
+ * Load order per plugin: tokens.css -> components.css -> admin-shell.css (this file last so it wins
+ * the wp-admin bleed fights). Depends on the token vars defined in tokens.css under .pk-root.
+ *
+ * `:has()` is fine (internal plugins, modern browsers, WP 6.x).
+ */
+
+/* ---------------------------------------------------------------------------
+ * 1. wp-admin chrome reset — only on pages that mount a .pk-root app.
+ *    Strip the left gutter + wrap chrome so our canvas fills edge to edge, and
+ *    paint the content area our canvas background so it's white/slate, not grey.
+ * ------------------------------------------------------------------------- */
+body:has(.pk-root) #wpcontent,
+body:has(.pk-root) #wpbody-content {
+  padding-left: 0 !important;
+}
+body:has(.pk-root) #wpbody-content {
+  background: hsl(var(--pk-bg)) !important;
+}
+body:has(.pk-root) .wrap {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+/* The auto-printed wp <h1> and footer/version + update-nag: hidden on our pages.
+   (5 of 9 plugins did this by hand before; now standardized for all.) */
+body:has(.pk-root) .wrap > h1:first-child,
+body:has(.pk-root) #wpfooter,
+body:has(.pk-root) .update-nag {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 2. Notice zone — CSS-only, style-in-place. We do NOT move notice nodes
+ *    (relocating live .notice elements risks breaking WP core's and other
+ *    plugins' dismiss handlers). WP prints .notice into .wrap as a sibling
+ *    above the app-root; we give that band a consistent full-canvas width and
+ *    padding so it stops orphaning/early-wrapping. Foreign notices (update nags,
+ *    other plugins) keep their own internal markup untouched — we only set the
+ *    outer box so a multi-paragraph notice stays readable.
+ * ------------------------------------------------------------------------- */
+body:has(.pk-root) .wrap > .notice,
+body:has(.pk-root) .wrap > .notice-success,
+body:has(.pk-root) .wrap > .notice-warning,
+body:has(.pk-root) .wrap > .notice-error,
+body:has(.pk-root) .wrap > .notice-info,
+body:has(.pk-root) .wrap > .error,
+body:has(.pk-root) .wrap > .updated {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 var(--sp-3) 0 !important;
+}
+/* Our OWN license notice opts into the compact pill look via `notice-pk`
+   (emitted by AdminNotice.php). Foreign notices never get this. */
+body:has(.pk-root) .wrap > .notice.notice-pk {
+  border-radius: var(--r-md) !important;
+  border-left-width: 4px !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * 3. The app canvas + base typography. This is the ONE place base font/size/
+ *    color/bg live — every plugin inherits it from .pk-root, so no plugin sets
+ *    font-family on a private #app id anymore (that inconsistency is why consent
+ *    fell back to serif — its content wasn't governed by a font rule that
+ *    actually reached it).
+ * ------------------------------------------------------------------------- */
+.pk-root {
+  min-height: calc(100vh - 32px);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: hsl(var(--pk-text));
+  background: hsl(var(--pk-bg));
+  -webkit-font-smoothing: antialiased;
+}
+/* Belt-and-suspenders: force the sans stack on descendants so a stray wp-admin
+   or theme serif rule can't win inside our app. */
+.pk-root, .pk-root * {
+  font-family: var(--font-sans);
+}
+.pk-root .mono, .pk-root code, .pk-root pre, .pk-root kbd {
+  font-family: var(--font-mono);
+}
+
+/* ---------------------------------------------------------------------------
+ * 4. wp-admin bleed fixes — generalized from branding's proven #pk-sb-app rules
+ *    to .pk-root. These neutralize wp-admin's own input/checkbox/switch styling
+ *    that otherwise leaks into our components.
+ * ------------------------------------------------------------------------- */
+.pk-root p { margin: 0 !important; }
+.pk-root ul, .pk-root ol { padding: 0 !important; list-style: none !important; }
+
+.pk-root input[type="text"],
+.pk-root input[type="email"],
+.pk-root input[type="url"],
+.pk-root input[type="password"],
+.pk-root input[type="search"],
+.pk-root input[type="number"],
+.pk-root textarea,
+.pk-root select:not(.select) {
+  padding: 8px 12px !important;
+  line-height: var(--lh-sm) !important;
+  min-height: unset !important;
+  margin: 0 !important;
+  border: 1px solid hsl(var(--pk-border-strong)) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: none !important;
+  background-color: hsl(var(--pk-surface)) !important;
+  color: hsl(var(--pk-text)) !important;
+  font-size: var(--fs-sm) !important;
+}
+
+/* Native checkbox reset + our .checkbox tick box (was per-plugin; maintenance
+   omitted the .checkbox rule -> native-blue box bug. Fixed here for all). */
+.pk-root input[type="checkbox"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.pk-root .checkbox {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 1px solid hsl(var(--pk-border-strong)) !important;
+  border-radius: var(--r-sm) !important;
+  background: hsl(var(--pk-surface)) !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+.pk-root .checkbox:checked {
+  background: hsl(var(--pk-accent)) !important;
+  border-color: hsl(var(--pk-accent)) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 8 6.5 11.5 13 4.5'/%3E%3C/svg%3E") !important;
+  background-size: 12px 12px !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+.pk-root .checkbox:hover { border-color: hsl(var(--pk-accent)) !important; }
+
+/* .switch pill toggle — neutralize wp-admin ::before content bleed */
+.pk-root .switch {
+  display: block !important;
+  position: relative !important;
+  width: 36px !important;
+  height: 20px !important;
+  border-radius: var(--r-pill) !important;
+  border: none !important;
+  flex-shrink: 0 !important;
+}
+.pk-root .switch::before { content: none !important; }
+
+.pk-root button { box-shadow: none !important; }
+
+/* wp-admin .card override (max-width:520px etc.) */
+.pk-root .card {
+  max-width: none !important;
+  width: 100% !important;
+}

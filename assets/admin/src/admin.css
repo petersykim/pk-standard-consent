@@ -1,0 +1,115 @@
+@import "../../../../_shared/ui/src/tokens/tokens.css";
+@import "../../../../_shared/ui/src/components.css";
+
+/* Strip wp-admin chrome so the React app sits flush against the admin menu + toolbar (no gap).
+ * Scoped via :has(#pk-sc-admin-root) so it applies on every consent subpage without listing slugs. */
+#wpcontent:has(#pk-sc-admin-root) { padding-left: 0 !important; }
+#wpbody-content:has(#pk-sc-admin-root) { padding-bottom: 0 !important; }
+#pk-sc-admin-root { margin: 0 !important; }
+
+/* consent-specific admin overrides */
+.category-card {
+  border-left: 3px solid hsl(var(--pk-border-strong));
+}
+.category-card--necessary { border-left-color: hsl(var(--pk-success)); }
+.category-card--preferences { border-left-color: hsl(var(--pk-accent)); }
+.category-card--analytics { border-left-color: hsl(var(--pk-warning)); }
+.category-card--marketing { border-left-color: hsl(var(--pk-danger)); }
+
+.script-handle {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+.badge--violation {
+  background: hsl(var(--pk-danger-soft));
+  color: hsl(var(--pk-danger));
+  border-color: hsl(var(--pk-danger) / 0.25);
+  font-weight: var(--fw-semibold);
+}
+
+.select--inline {
+  width: auto;
+  padding: 3px 24px 3px 8px;
+  font-size: var(--fs-xs);
+  border-radius: var(--r-sm);
+}
+
+.scan-progress-card {
+  background: hsl(var(--pk-surface));
+  border: 1px solid hsl(var(--pk-border));
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-sm);
+  padding: var(--sp-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  text-align: center;
+}
+
+.regions-table th,
+.regions-table td { vertical-align: middle; }
+/* the table can be wider than its card — let it scroll instead of clipping the last column */
+.regions-table { width: 100%; }
+#pk-sc-admin-root .regions-table-wrap { overflow-x: auto; }
+
+/* WordPress core's own .card class (from wp-admin's load-styles.php) caps width at 520px and
+   collides with our .card, jamming the content into a narrow column with a scrollbar despite
+   the huge empty page. Remove that cap inside our app. */
+#pk-sc-admin-root .card { max-width: none; }
+.region-model-cell { min-width: 130px; }
+.category-switch-cell { text-align: center; min-width: 90px; }
+.countries-list {
+  font-size: var(--fs-xs);
+  color: hsl(var(--pk-muted));
+  line-height: 1.6;
+}
+
+.bool-yes { color: hsl(var(--pk-success)); font-weight: var(--fw-semibold); font-size: var(--fs-xs); }
+.bool-no  { color: hsl(var(--pk-muted)); font-size: var(--fs-xs); }
+
+.inline-code {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  background: hsl(var(--pk-surface-2));
+  padding: 1px 5px;
+  border-radius: var(--r-sm);
+}
+
+/* wp-admin styles every input[type=checkbox] (16x16, blue border, a ::before checkmark on
+   :checked). The @pk/ui .switch and .checkbox ARE checkboxes, so wp-admin bled a blue border
+   and a second checkmark onto them. Fully neutralize wp-admin here, scoped to the admin root. */
+#pk-sc-admin-root .switch {
+  appearance: none !important;
+  width: 36px !important;
+  height: 20px !important;
+  min-width: 36px !important;
+  border: 0 !important;
+  border-radius: var(--r-pill) !important;
+  background: hsl(var(--pk-border-strong)) !important;
+  box-shadow: none !important;
+}
+#pk-sc-admin-root .switch:checked {
+  background: hsl(var(--pk-accent)) !important;
+  border: 0 !important;
+}
+#pk-sc-admin-root .switch::before,
+#pk-sc-admin-root .checkbox::before {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+#pk-sc-admin-root .checkbox {
+  appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: var(--r-sm) !important;
+  background: hsl(var(--pk-surface)) !important;
+  border: 1px solid hsl(var(--pk-border-strong)) !important;
+  box-shadow: none !important;
+}
+#pk-sc-admin-root .checkbox:checked {
+  background: hsl(var(--pk-accent)) !important;
+  border-color: hsl(var(--pk-accent)) !important;
+}

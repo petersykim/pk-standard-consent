@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<ruleset name="pk-standard-consent">
+    <file>src/</file>
+    <file>templates/</file>
+    <file>pk-standard-consent.php</file>
+    <file>uninstall.php</file>
+
+    <!-- PSR-12 style — tabs vs spaces -->
+    <rule ref="WordPress">
+        <exclude name="Generic.WhiteSpace.DisallowSpaceIndent"/>
+        <exclude name="Universal.WhiteSpace.PrecisionAlignment"/>
+        <!-- File naming: PSR-4 class files, not WP class-foo.php convention -->
+        <exclude name="WordPress.Files.FileName"/>
+        <!-- Brace style: PSR-12 puts class/function brace on its own line -->
+        <exclude name="Generic.Classes.OpeningBraceSameLine"/>
+        <exclude name="Generic.Functions.OpeningFunctionBraceKernighanRitchie"/>
+        <exclude name="Squiz.Functions.MultiLineFunctionDeclaration"/>
+        <!-- Short array syntax: [] is fine -->
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+        <!-- Method casing: PSR-12 uses camelCase -->
+        <exclude name="WordPress.NamingConventions.ValidFunctionName"/>
+        <!-- Doc comments: not required per RULEBOOK §8 -->
+        <exclude name="Squiz.Commenting.FileComment"/>
+        <exclude name="Squiz.Commenting.ClassComment"/>
+        <exclude name="Squiz.Commenting.FunctionComment"/>
+        <exclude name="Squiz.Commenting.VariableComment"/>
+        <exclude name="Generic.Commenting.DocComment"/>
+        <!-- Inline comments not required -->
+        <exclude name="Squiz.Commenting.InlineComment"/>
+        <exclude name="Squiz.Commenting.BlockComment"/>
+        <!-- Tab indentation in PHPCS is unrelated to our PSR-12 spaces -->
+        <exclude name="Generic.WhiteSpace.ScopeIndent"/>
+        <exclude name="WordPress.WhiteSpace.ControlStructureSpacing"/>
+        <!-- Upstream WPCS false positive: flags exception constructor strings as unescaped output -->
+        <exclude name="WordPress.Security.EscapeOutput.ExceptionNotEscaped"/>
+    </rule>
+</ruleset>
