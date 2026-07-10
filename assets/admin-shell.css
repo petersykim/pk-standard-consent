@@ -55,9 +55,11 @@ body:has(.pk-root) .wrap > .notice-info,
 body:has(.pk-root) .wrap > .error,
 body:has(.pk-root) .wrap > .updated {
   box-sizing: border-box !important;
-  width: 100% !important;
+  /* Match the app content's horizontal gutter (--sp-8 = 32px) so notices line up
+     with the page header + cards instead of butting against the admin menu. */
+  width: calc(100% - (2 * var(--sp-8))) !important;
   max-width: none !important;
-  margin: 0 0 var(--sp-3) 0 !important;
+  margin: var(--sp-4) var(--sp-8) 0 var(--sp-8) !important;
 }
 /* Our OWN license notice opts into the compact pill look via `notice-pk`
    (emitted by AdminNotice.php). Foreign notices never get this. */
