@@ -235,8 +235,11 @@ final class TagRewriter
         $out .= '<svg class="pk-sc-embed__icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
         $out .= '<p class="pk-sc-embed__message">' . esc_html( $message ) . '</p>';
         $out .= '<div class="pk-sc-embed__actions">';
-        $out .= '<button class="pk-sc-btn pk-sc-btn--primary" type="button" data-pk-sc="embed-allow">' . esc_html( $allow_label ) . '</button>';
-        $out .= '<button class="pk-sc-btn pk-sc-btn--ghost" type="button" data-pk-sc="embed-prefs">' . esc_html__( 'Manage preferences', 'pk-standard-consent' ) . '</button>';
+        $out .= '<button class="pk-sc-btn pk-sc-btn--primary" type="button" data-pk-sc="embed-allow" data-pk-sc-category="' . esc_attr( $category ) . '">' . esc_html( $allow_label ) . '</button>';
+        // Reuses the SAME data-pk-sc="open-prefs" hook the banner's "Manage preferences" button
+        // uses, so consent-banner.js's existing global click delegator opens the real modal —
+        // no separate reimplementation needed.
+        $out .= '<button class="pk-sc-btn pk-sc-btn--ghost" type="button" data-pk-sc="open-prefs">' . esc_html__( 'Manage preferences', 'pk-standard-consent' ) . '</button>';
         $out .= '</div>';
         $out .= '</div>';
         $out .= '</div>';

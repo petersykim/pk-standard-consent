@@ -117,6 +117,55 @@
         }
     }
 
+    // Attributes the rebuilt <iframe> is allowed to carry. The rest of the decoded
+    // data-pk-sc-attrs string is dropped — it is never used to build HTML or set
+    // properties outside this allowlist, so a malicious/malformed attribute string
+    // cannot inject anything beyond these known-safe iframe properties.
+    const EMBED_ATTR_ALLOWLIST = ['src', 'width', 'height', 'allow', 'allowfullscreen', 'title', 'loading', 'frameborder'];
+
+    function parseAttrString(attrs) {
+        const out = {};
+        const re = /([a-zA-Z-]+)\s*=\s*("([^"]*)"|'([^']*)')/g;
+        let match = re.exec(attrs);
+        while (match) {
+            out[match[1].toLowerCase()] = match[3] !== undefined ? match[3] : match[4];
+            match = re.exec(attrs);
+        }
+        return out;
+    }
+
+    function unblockEmbed(el) {
+        const src = el.getAttribute('data-pk-sc-src');
+        const attrsB64 = el.getAttribute('data-pk-sc-attrs');
+        if (!src || !attrsB64) {
+            return;
+        }
+        let decoded;
+        try {
+            decoded = atob(attrsB64);
+        } catch (e) {
+            debug('embed attrs decode failed', e);
+            return;
+        }
+        const parsed = parseAttrString(decoded);
+        const iframe = document.createElement('iframe');
+        EMBED_ATTR_ALLOWLIST.forEach(function (name) {
+            if (Object.prototype.hasOwnProperty.call(parsed, name)) {
+                iframe.setAttribute(name, parsed[name]);
+            }
+        });
+        iframe.setAttribute('src', src);
+        el.parentNode.replaceChild(iframe, el);
+    }
+
+    function unblockAllEmbeds(category) {
+        const selector = 'div.pk-sc-embed[data-pk-sc-category="' + category + '"]';
+        const els = document.querySelectorAll(selector);
+        for (let i = 0; i < els.length; i++) {
+            unblockEmbed(els[i]);
+        }
+    }
+
     function buildSignals(grants) {
         const signals = { security_storage: 'granted' };
         const categories = Object.keys(SIGNAL_MAP);
@@ -199,6 +248,7 @@
             if (grants[categories[i]]) {
                 debug('unblock category', categories[i]);
                 unblockAll(categories[i]);
+                unblockAllEmbeds(categories[i]);
             } else if (categories[i] !== 'necessary') {
                 debug('clear cookies for denied category', categories[i]);
                 clearCategoryCookies(categories[i]);
@@ -233,6 +283,31 @@
             );
         },
     };
+
+    // Placeholder's "Allow & load" button: grants the ONE category for this embed while
+    // preserving the current state of every other category (same merge pattern as
+    // handleContinue() in consent-banner.js), via the same shared pkConsent.update path
+    // the banner and preference center use. applyGrants() (triggered by the POST success
+    // callback above) then finds and swaps the matching placeholders via unblockAllEmbeds.
+    function onEmbedAllowClick(evt) {
+        const btn = evt.target.closest('[data-pk-sc="embed-allow"]');
+        if (!btn) {
+            return;
+        }
+        const category = btn.getAttribute('data-pk-sc-category');
+        if (!category) {
+            return;
+        }
+        const grants = {
+            necessary:   true,
+            preferences: Boolean(cfg.granted.preferences),
+            analytics:   Boolean(cfg.granted.analytics),
+            marketing:   Boolean(cfg.granted.marketing),
+        };
+        grants[category] = true;
+        window.pkConsent.update(grants, 'custom');
+    }
+    document.addEventListener('click', onEmbedAllowClick);
 
     window.addEventListener('load', function () {
         debug('gate init', { hasConsent: cfg.hasConsent, region: cfg.region, granted: cfg.granted });
