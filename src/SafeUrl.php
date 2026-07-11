@@ -25,15 +25,31 @@ final class SafeUrl
      * metadata IP and be fetched anyway (round-6 audit F1). Callers MUST use this instead of a
      * bare wp_remote_get for any attacker-influenced URL.
      *
-     * @param array<string,mixed> $args  merged into the wp_remote_get args (redirection forced 0).
+     * @param array<string,mixed> $args         merged into the wp_remote_get args (redirection forced 0).
+     * @param string              $allowed_host optional hostname (e.g. the site's own home_url host)
+     *                                          exempted from the private/reserved-IP rejection at
+     *                                          EVERY hop, so a same-host redirect on a privately-
+     *                                          resolving dev/staging host still fetches. A redirect
+     *                                          to any OTHER host is still fully validated and can
+     *                                          still be rejected — the exemption never widens past
+     *                                          the one host the caller named safe (Scanner's own-site
+     *                                          scan needed this: the outer isOwnHost() gate in
+     *                                          Scanner.php never reached this inner check, so the
+     *                                          scan of a privately-resolving DDEV/staging host still
+     *                                          silently returned zero results — real-world QA R3).
      * @return array<mixed>|\WP_Error  the final WP HTTP response, or WP_Error on unsafe/failure.
      */
-    public static function get( string $url, array $args = [] )
+    public static function get( string $url, array $args = [], string $allowed_host = '' )
     {
         $max_hops = 3;
         $current  = $url;
         for ( $hop = 0; $hop <= $max_hops; $hop++ ) {
-            if ( self::isUnsafe( $current ) ) {
+            $host      = (string) wp_parse_url( $current, PHP_URL_HOST );
+            $exempted  = '' !== $allowed_host && 0 === strcasecmp( $host, $allowed_host );
+            if ( ! $exempted && self::isUnsafe( $current ) ) {
+                return new \WP_Error( 'pk_sc_unsafe_url', 'Refusing to fetch an unsafe URL (SSRF guard).' );
+            }
+            if ( $exempted && ( '' === $current || false === wp_http_validate_url( $current ) ) ) {
                 return new \WP_Error( 'pk_sc_unsafe_url', 'Refusing to fetch an unsafe URL (SSRF guard).' );
             }
             $response = wp_remote_get( $current, array_merge( $args, [ 'redirection' => 0 ] ) );

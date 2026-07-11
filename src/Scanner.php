@@ -160,18 +160,25 @@ final class Scanner
 			if ( '' === $safe_url ) {
 				continue;
 			}
-			if ( ! self::isOwnHost( $safe_url ) && SafeUrl::isUnsafe( $safe_url ) ) {
+			$is_own_host = self::isOwnHost( $safe_url );
+			if ( ! $is_own_host && SafeUrl::isUnsafe( $safe_url ) ) {
 				continue;
 			}
 
 			// SafeUrl::get follows redirects with re-validation at every hop — a bare
 			// wp_remote_get followed a 3xx to an internal/metadata IP unchecked (round-6 F1).
+			// The own-host exemption must also reach SafeUrl::get() itself, not just this
+			// pre-check: SafeUrl::get() re-validates every hop internally with its own
+			// isUnsafe() call, so a privately-resolving own-host URL was rejected again right
+			// there regardless of the pass above, and the scan silently returned zero results
+			// (real-world QA round 3 — false all-clean on DDEV/staging).
 			$response = SafeUrl::get(
 				$safe_url,
 				[
 					'timeout'   => $timeout,
 					'sslverify' => $sslverify,
-				]
+				],
+				$is_own_host ? (string) wp_parse_url( $safe_url, PHP_URL_HOST ) : ''
 			);
 
 			if ( is_wp_error( $response ) ) {
