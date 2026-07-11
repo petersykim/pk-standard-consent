@@ -246,6 +246,13 @@
 
     function applyGrants(grants) {
         debug('applyGrants', grants);
+        // cfg.granted is what consent-banner.js's populatePrefs() reads to restore toggle state
+        // when the preference center is reopened. Without this, cfg.granted stays frozen at the
+        // page-load snapshot for the rest of the page's lifetime — reopening the prefs modal
+        // right after Accept-all/Reject-all/Save (no reload in between) shows stale toggles that
+        // disagree with the choice the visitor just made (same class as the CO-P-01 regression
+        // this file's sibling already guards against, triggered on the no-reload path instead).
+        cfg.granted = grants;
         if (cfg.consentModeV2 && typeof gtag === 'function') {
             gtag('consent', 'update', buildSignals(grants));
         }
