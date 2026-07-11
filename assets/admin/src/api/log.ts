@@ -79,10 +79,6 @@ export function useLogStats(config: AppConfig): {
   return { stats, loading, error };
 }
 
-export function clearLog(config: AppConfig): Promise<void> {
-  return apiFetch(config, "DELETE", "log").then(() => undefined);
-}
-
 export function eraseVisitor(config: AppConfig, id: number): Promise<{ deleted: number }> {
   return apiFetch(config, "DELETE", `log/visitor?id=${id}`);
 }

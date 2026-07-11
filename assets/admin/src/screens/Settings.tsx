@@ -1,7 +1,6 @@
 import { useState, useContext } from "react";
-import { PageHeader, Panel, Field, Input, Switch, Checkbox, Spinner, ConfirmDialog, useToast } from "@pk/ui";
+import { PageHeader, Panel, Field, Input, Switch, Checkbox, Spinner, useToast } from "@pk/ui";
 import { useSettingsData, saveSettings } from "../api/settings";
-import { clearLog } from "../api/log";
 import type { SettingsData } from "../api/settings";
 import { ConfigContext } from "../ConfigContext";
 
@@ -12,7 +11,6 @@ export function Settings() {
   const { data: remote, loading, error } = useSettingsData(config);
   const [draft, setDraft] = useState<SettingsData | null>(null);
   const [saving, setSaving] = useState(false);
-  const [confirmClear, setConfirmClear] = useState(false);
   const { toast } = useToast();
   const data = draft ?? remote;
 
@@ -35,16 +33,6 @@ export function Settings() {
     }
   };
 
-  const handleClearLog = async () => {
-    setConfirmClear(false);
-    try {
-      await clearLog(config);
-      toast({ title: "Consent log cleared", variant: "success" });
-    } catch {
-      toast({ title: "Clear failed", variant: "danger" });
-    }
-  };
-
   if (loading) return <div className="page-body"><Spinner /></div>;
   if (error != null || data == null) return <div className="page-body"><p className="muted">{error ?? "Failed to load"}</p></div>;
 
@@ -56,9 +44,8 @@ export function Settings() {
       <div className="page-body stack stack--lg">
         <BehaviorPanel data={data} patch={patch} />
         <GeoPanel data={data} patch={patch} />
-        <DangerPanel onClearLog={() => setConfirmClear(true)} data={data} patch={patch} />
+        <DangerPanel data={data} patch={patch} />
       </div>
-      <ConfirmDialog open={confirmClear} title="Clear consent log" description="Permanently deletes all stored consent records. Visitors will be re-prompted on their next visit since no stored consent exists." confirmLabel="Clear log" destructive onConfirm={handleClearLog} onCancel={() => setConfirmClear(false)} />
     </>
   );
 }
@@ -120,9 +107,9 @@ function GeoPanel({ data, patch }: { data: SettingsData; patch: PatchFn }) {
   );
 }
 
-type DangerPanelProps = { onClearLog: () => void; data: SettingsData; patch: PatchFn };
+type DangerPanelProps = { data: SettingsData; patch: PatchFn };
 
-function DangerPanel({ onClearLog, data, patch }: DangerPanelProps) {
+function DangerPanel({ data, patch }: DangerPanelProps) {
   return (
     <Panel title="Danger zone" description="These actions are destructive and cannot be undone." variant="danger">
       <div className="row row--between">
@@ -132,14 +119,6 @@ function DangerPanel({ onClearLog, data, patch }: DangerPanelProps) {
             <Checkbox checked={data.uninstall_clean} onChange={(e) => patch({ uninstall_clean: e.target.checked })} label="When this plugin is deleted, also drop the consent log table, all registered scripts, all region rules, and all plugin options from the database." />
           </div>
         </div>
-      </div>
-      <hr />
-      <div className="row row--between">
-        <div>
-          <div style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-medium)" }}>Clear consent log</div>
-          <div className="field__hint" style={{ marginTop: "var(--sp-1)" }}>Permanently deletes all stored consent records. Banner and preference-center behavior are unaffected.</div>
-        </div>
-        <button className="btn btn--danger-ghost btn--sm" type="button" onClick={onClearLog}>Clear log</button>
       </div>
     </Panel>
   );
