@@ -150,8 +150,17 @@ final class Scanner
 			// SSRF guard. wp_http_validate_url alone passes the link-local metadata range
 			// (169.254.0.0/16 — the AWS/GCP instance-metadata endpoint), so use the shared
 			// SafeUrl guard that also resolves the host and rejects private/reserved/link-local.
+			// EXEMPTION: the scanner only ever fetches THIS site's own pages (scan_urls, default
+			// home_url) — scanning your own site is not an SSRF attack. On a site whose own host
+			// resolves to a private IP (DDEV / staging / VPN / internal), SafeUrl::isUnsafe would
+			// otherwise reject every scan URL and the admin got a false "0 cookies, all clean"
+			// with no warning (real-world QA R2-002). So skip the SSRF rejection for a URL on the
+			// site's OWN host; the guard still applies to any other host (geo lookups, external).
 			$safe_url = esc_url_raw( $url );
-			if ( '' === $safe_url || SafeUrl::isUnsafe( $safe_url ) ) {
+			if ( '' === $safe_url ) {
+				continue;
+			}
+			if ( ! self::isOwnHost( $safe_url ) && SafeUrl::isUnsafe( $safe_url ) ) {
 				continue;
 			}
 
@@ -344,5 +353,18 @@ final class Scanner
 			'compliance_flag' => $compliance_flag,
 			'first_seen_url'  => $first_seen_url,
 		];
+	}
+
+	/**
+	 * True when $url is on THIS site's own host (home_url). Scanning your own site is not an
+	 * SSRF target, so the scanner exempts its own host from the private-IP rejection — otherwise
+	 * a site whose host resolves privately (DDEV / staging / VPN) can never scan itself and the
+	 * admin gets a false "all clean". Host-only comparison, case-insensitive; port/scheme ignored.
+	 */
+	private static function isOwnHost( string $url ): bool
+	{
+		$host      = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+		$own_host  = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+		return $host !== '' && $host === $own_host;
 	}
 }
