@@ -121,7 +121,13 @@
     // data-pk-sc-attrs string is dropped — it is never used to build HTML or set
     // properties outside this allowlist, so a malicious/malformed attribute string
     // cannot inject anything beyond these known-safe iframe properties.
-    const EMBED_ATTR_ALLOWLIST = ['src', 'width', 'height', 'allow', 'allowfullscreen', 'title', 'loading', 'frameborder'];
+    // id/class/style/name/referrerpolicy/sandbox are included (real-world QA, 2026-07-11):
+    // the original list only kept rendering attrs and silently dropped these on every
+    // grant, so any theme CSS/JS/page-builder wiring that targeted the original embed by
+    // id or class broke the moment a visitor consented — the iframe still loaded, but its
+    // hooks vanished. None of these accept a URL or executable content, so adding them
+    // carries the same "known-safe iframe properties" guarantee as the original set.
+    const EMBED_ATTR_ALLOWLIST = ['src', 'width', 'height', 'allow', 'allowfullscreen', 'title', 'loading', 'frameborder', 'id', 'class', 'style', 'name', 'referrerpolicy', 'sandbox'];
 
     function parseAttrString(attrs) {
         const out = {};
