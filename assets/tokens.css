@@ -1,7 +1,10 @@
 /*
  * PK Standard design tokens.
  * Scoped under .pk-root so WordPress admin styles never leak in or out.
- * Light theme default. Dark theme applied via .pk-theme-dark on the root.
+ * Light theme only. The plugin admin UI does not follow OS/WP dark mode: on a
+ * dark scheme the brand teal is too light to carry white button text (2.5:1),
+ * and dark button text off-brands the UI, so we pin the light palette. (Peter,
+ * 2026-07-14 — teal primary buttons showed black text under OS dark mode.)
  */
 
 /* Z-index tokens at :root so portalled elements (appended to body) can resolve them. */
@@ -113,48 +116,4 @@
   background: hsl(var(--pk-bg));
   -webkit-font-smoothing: antialiased;
 
-}
-
-.pk-root.pk-theme-dark {
-  --pk-bg: 215 28% 10%;
-  --pk-surface: 215 24% 14%;
-  --pk-surface-2: 215 22% 17%;
-  --pk-border: 215 18% 24%;
-  --pk-border-strong: 215 16% 34%;
-  --pk-text: 210 20% 95%;
-  --pk-text-2: 215 14% 78%;
-  --pk-muted: 215 10% 60%;
-
-  --pk-accent: 182 38% 52%;
-  --pk-accent-hover: 182 42% 58%;
-  --pk-accent-fg: 215 28% 10%;
-  --pk-accent-soft: 182 30% 20%;
-
-  --pk-danger: 358 62% 62%;
-  --pk-danger-soft: 358 30% 22%;
-  --pk-success: 152 42% 56%;
-  --pk-success-soft: 152 24% 20%;
-  --pk-warning: 38 82% 58%;
-  --pk-warning-soft: 38 30% 22%;
-
-  --pk-ring: 182 60% 56%;
-}
-
-/* Follow WP admin dark mode if the user enabled it there. */
-@media (prefers-color-scheme: dark) {
-  .pk-root:not(.pk-theme-light) {
-    --pk-bg: 215 28% 10%;
-    --pk-surface: 215 24% 14%;
-    --pk-surface-2: 215 22% 17%;
-    --pk-border: 215 18% 24%;
-    --pk-border-strong: 215 16% 34%;
-    --pk-text: 210 20% 95%;
-    --pk-text-2: 215 14% 78%;
-    --pk-muted: 215 10% 60%;
-    --pk-accent: 182 38% 52%;
-    --pk-accent-hover: 182 42% 58%;
-    --pk-accent-fg: 215 28% 10%;
-    --pk-accent-soft: 182 30% 20%;
-    --pk-ring: 182 60% 56%;
-  }
 }
