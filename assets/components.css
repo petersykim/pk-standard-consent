@@ -679,6 +679,19 @@ hr { border: 0; height: 1px; background: hsl(var(--pk-border)); margin: 0; }
 .btn--lg { padding: 11px 18px; font-size: var(--fs-md); }
 .btn--lg svg { width: 16px; height: 16px; }
 
+/* A .btn rendered as an anchor (e.g. "New field group" -> <a class="btn btn--primary">)
+   is caught by wp-admin's `#wpbody-content a { color: var(--admin-link-color) }` — an ID
+   selector (1,0,1) that outranks our single-class `.btn--*` color, so the primary button's
+   text painted dark instead of white (Peter, 2026-07-14: black label on the teal button).
+   The var rebind in tokens can't help here: the ID rule sets `color` directly, it doesn't
+   read our token. So restore each variant's own text color on anchors; !important is the
+   only lever that beats an ID selector short of hijacking wp-admin's #wpbody-content id. */
+a.btn--primary,
+a.btn--danger { color: hsl(var(--pk-accent-fg)) !important; }
+a.btn--secondary { color: hsl(var(--pk-text)) !important; }
+a.btn--ghost { color: hsl(var(--pk-text-2)) !important; }
+a.btn--danger-ghost { color: hsl(var(--pk-danger)) !important; }
+
 /* === Icon button === */
 .icon-btn {
   display: inline-flex;
