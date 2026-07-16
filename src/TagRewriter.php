@@ -72,8 +72,14 @@ final class TagRewriter
         }
 
         if ( false !== stripos( $html, '<iframe' ) ) {
+            // Match the OPENING iframe tag and optionally consume a body+close if present.
+            // The old pattern required `>(.*?)</iframe>`, so a self-closing `<iframe .../>` or an
+            // unclosed iframe (both valid, both common from embed copy-paste — Google Maps' own
+            // "Embed a map" code is a gated provider here) never matched and passed through LIVE,
+            // ungated, from first page load — a consent bypass (S1, 2026-07-15). rewriteIframe only
+            // uses the attrs capture, so we no longer require a body/close.
             $html = (string) preg_replace_callback(
-                '#<iframe\b([^>]*)>(.*?)</iframe>#is',
+                '#<iframe\b([^>]*?)\s*/?>(?:.*?</iframe>)?#is',
                 [ $this, 'rewriteIframe' ],
                 $html
             );
