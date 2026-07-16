@@ -64,8 +64,15 @@ final class TagRewriter
             // parser behaves — a raw `</script>` cannot appear inside an inline script body (it must
             // be escaped `<\/script>`), so the browser ends the script there too. (Round-1 audit F1
             // flagged this as truncation; it is spec-correct HTML parsing, not a defect.)
+            //
+            // Attrs = a run of (double-quoted | single-quoted | non-`>`) chars, so a literal `>`
+            // INSIDE a quoted attribute value (e.g. data-config="a>b") does NOT truncate the attrs
+            // capture. The old `[^>]*` stopped at the first `>`, dropping any data-pk-sc-category
+            // that appeared after it — so a tagged analytics script sailed through UNGATED (consent
+            // bypass, C-005). A theme header.php / pasted GTM snippet echoes such a script via
+            // wp_head with no wpautop, so a raw `>` reaches here intact; this is a live bypass.
             $html = (string) preg_replace_callback(
-                '#<script\b([^>]*)>(.*?)</script>#is',
+                '#<script\b((?:"[^"]*"|\'[^\']*\'|[^>\'"])*)>(.*?)</script>#is',
                 [ $this, 'rewriteTag' ],
                 $html
             );
