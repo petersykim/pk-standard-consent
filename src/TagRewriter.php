@@ -34,6 +34,9 @@ final class TagRewriter
     /** @var list<array{category: string, signatures: list<string>}> */
     private array $embed_signatures = [];
 
+    /** True once this response has had at least one script/iframe made inert (gated). */
+    private bool $gated = false;
+
     /**
      * Opens the page-wide output buffer on template_redirect.
      * No-op for feeds, REST, and admin so only real front-end HTML is rewritten.
@@ -90,6 +93,18 @@ final class TagRewriter
                 [ $this, 'rewriteIframe' ],
                 $html
             );
+        }
+
+        // If this page actually had something gated (a script/iframe made inert for THIS visitor's
+        // consent state), it must never be served from a cache to a DIFFERENT visitor — their
+        // consent state differs, so a cached copy would run (or block) the wrong trackers. A site
+        // owner has no control over what cache a client puts in front (CDN, page-cache plugin), so
+        // the gate declares the page uncacheable itself. Sent ONLY when something was gated: a page
+        // with no trackers, or a fully-consented visitor's page, stays cacheable. This runs inside
+        // the ob_start callback, before the buffer flushes, so headers are still open.
+        if ( $this->gated && ! headers_sent() ) {
+            header( 'Cache-Control: private, no-store, max-age=0' );
+            header( 'Vary: Cookie', false );
         }
 
         return $html;
@@ -149,6 +164,7 @@ final class TagRewriter
      */
     private function renderInert( string $attrs, string $body, string $category ): string
     {
+        $this->gated = true; // this response carries per-visitor gated content — mark it uncacheable.
         $src = $this->attrValue( $attrs, 'src' );
 
         $out = '<script type="text/plain" data-pk-sc-category="' . esc_attr( $category ) . '"';
@@ -219,6 +235,7 @@ final class TagRewriter
      */
     private function renderEmbedPlaceholder( string $attrs, string $category ): string
     {
+        $this->gated = true; // this response carries per-visitor gated content — mark it uncacheable.
         $src   = $this->attrValue( $attrs, 'src' );
         $ratio = $this->resolveRatio( $attrs );
 
