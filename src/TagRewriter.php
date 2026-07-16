@@ -74,11 +74,24 @@ final class TagRewriter
             // that appeared after it — so a tagged analytics script sailed through UNGATED (consent
             // bypass, C-005). A theme header.php / pasted GTM snippet echoes such a script via
             // wp_head with no wpautop, so a raw `>` reaches here intact; this is a live bypass.
-            $html = (string) preg_replace_callback(
-                '#<script\b((?:"[^"]*"|\'[^\']*\'|[^>\'"])*)>(.*?)</script>#is',
+            // Attrs alternation is ATOMIC (the possessive group) and the fallback class excludes
+            // quote chars, so each character is consumed by exactly one branch with NO backtracking.
+            // The earlier non-atomic form let a stray unbalanced quote (a bare double-quote in an
+            // unquoted attr value, which is valid browser-executed HTML) force the engine to re-try
+            // the alternation across the whole document. On any page carrying a normal single-quoted
+            // attribute with embedded double quotes (Gutenberg data-wp-context, on every block-theme
+            // page) it backtracked catastrophically, blew PCRE's JIT stack, and preg_replace_callback
+            // returned null, blanking the entire page for every visitor (C-006, S1, 2026-07-16). A
+            // regex failure must NEVER destroy the page: keep the original HTML when the callback
+            // returns null (worst case a tag stays ungated, never a blank page).
+            $rewritten = preg_replace_callback(
+                '#<script\b((?>"[^"]*"|\'[^\']*\'|[^>\'"])*)>(.*?)</script>#is',
                 [ $this, 'rewriteTag' ],
                 $html
             );
+            if ( null !== $rewritten ) {
+                $html = $rewritten;
+            }
         }
 
         if ( false !== stripos( $html, '<iframe' ) ) {
@@ -88,11 +101,15 @@ final class TagRewriter
             // "Embed a map" code is a gated provider here) never matched and passed through LIVE,
             // ungated, from first page load — a consent bypass (S1, 2026-07-15). rewriteIframe only
             // uses the attrs capture, so we no longer require a body/close.
-            $html = (string) preg_replace_callback(
+            $rewritten = preg_replace_callback(
                 '#<iframe\b([^>]*?)\s*/?>(?:.*?</iframe>)?#is',
                 [ $this, 'rewriteIframe' ],
                 $html
             );
+            // Same rule as the script pass: a regex failure must never blank the page (C-006).
+            if ( null !== $rewritten ) {
+                $html = $rewritten;
+            }
         }
 
         // If this page actually had something gated (a script/iframe made inert for THIS visitor's
