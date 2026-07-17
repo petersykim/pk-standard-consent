@@ -44,11 +44,17 @@
     --pk-sc-radius-md: var(--r-md, 6px);
     --pk-sc-radius-lg: var(--r-lg, 10px);
 
-    /* z-index stack */
-    --pk-sc-z-overlay: 40;
-    --pk-sc-z-banner:  50;
-    --pk-sc-z-prefs:   60;
-    --pk-sc-z-float:   55;
+    /* z-index stack. A consent gate is the FIRST thing a visitor must be able to act on, so it
+       must sit ABOVE all theme/site chrome — sticky headers, mobile nav bars, cart drawers, chat
+       widgets. The old 40-60 band tied or lost to ordinary theme layers (e.g. pk-daylit-theme's
+       fixed mobile nav bar at z-index 50, same bottom:0 as the banner — with equal z-index the
+       later-in-DOM nav won the stacking context and swallowed every tap on the banner's buttons:
+       buttons visible, tapping did nothing, on mobile only, 2026-07-16). Claim a high band well
+       clear of typical theme values so the banner is always on top and always dismissable. */
+    --pk-sc-z-overlay: 2147483640;
+    --pk-sc-z-banner:  2147483641;
+    --pk-sc-z-float:   2147483643;
+    --pk-sc-z-prefs:   2147483645;
 
     /* Switch geometry */
     --pk-sc-switch-w:        40px;
