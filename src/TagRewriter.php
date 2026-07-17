@@ -113,14 +113,22 @@ final class TagRewriter
         }
 
         // If this page actually had something gated (a script/iframe made inert for THIS visitor's
-        // consent state), it must never be served from a cache to a DIFFERENT visitor — their
-        // consent state differs, so a cached copy would run (or block) the wrong trackers. A site
-        // owner has no control over what cache a client puts in front (CDN, page-cache plugin), so
-        // the gate declares the page uncacheable itself. Sent ONLY when something was gated: a page
-        // with no trackers, or a fully-consented visitor's page, stays cacheable. This runs inside
-        // the ob_start callback, before the buffer flushes, so headers are still open.
+        // consent state), it must never be served from a SHARED cache to a DIFFERENT visitor —
+        // their consent state differs, so a cached copy would run (or block) the wrong trackers.
+        // `private` already forbids every shared/CDN/proxy cache from storing it, and `Vary: Cookie`
+        // keys any remaining cache on the consent cookie — together that fully closes the
+        // cross-visitor leak (the S2 this guards).
+        //
+        // We deliberately do NOT send `no-store`. no-store additionally bars the visitor's OWN
+        // browser from storing the page, and on mobile that broke the banner's dismiss: the page
+        // carrying the REST nonce was never retained, so the consent POST fired a stale nonce, the
+        // route 401'd, and the failed POST silently left the banner up ("I can click Reject but it
+        // won't dismiss", Peter, prod, 2026-07-16). `private` is the correct, narrower directive:
+        // the visitor's browser keeps the page (nonce stays valid, dismiss works), no shared cache
+        // ever gets it. Runs inside the ob_start callback, before the buffer flushes, so headers
+        // are still open.
         if ( $this->gated && ! headers_sent() ) {
-            header( 'Cache-Control: private, no-store, max-age=0' );
+            header( 'Cache-Control: private, max-age=0' );
             header( 'Vary: Cookie', false );
         }
 
