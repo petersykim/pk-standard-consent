@@ -54,10 +54,14 @@ final class RegionRules
         // UK post-Brexit
         'GB' => 'UK',
         // US -> CCPA opt-out group by default, so a US visitor reaches the Do-Not-Sell
-        // banner without manual config. Geo emits 'US-CA' for a detected California
-        // visitor (see Geo::detect); both the country and the state code route to CA.
+        // banner without manual config (recording/analytics run until they opt out — CCPA-legal).
         'US'    => 'CA',
-        'US-CA' => 'CA',
+        // California specifically is OPT-IN, not opt-out. Session recording (Clarity) and analytics
+        // before an explicit choice carry real wiretapping/CIPA litigation exposure that is
+        // concentrated in California — so a CA visitor is denied-until-granted like the EU, while
+        // the rest of the US keeps the opt-out default. Geo::detect emits 'US-CA' for a detected
+        // California visitor (CF-Region-Code). Peter's call, 2026-07-17: keep US data, carve out CA.
+        'US-CA' => 'US_CALIF',
     ];
 
     /**
@@ -89,6 +93,14 @@ final class RegionRules
 			'preferences' => true,
 			'analytics'   => true,
 			'marketing'   => true,
+		],
+        // California (the state) — opt-in / all-denied, same posture as the EU. Distinct from the
+        // 'CA' group above, which is CCPA (the US opt-out model). See the US-CA route note above.
+        'US_CALIF' => [
+			'model'       => 'opt-in',
+			'preferences' => false,
+			'analytics'   => false,
+			'marketing'   => false,
 		],
     ];
 
