@@ -1,7 +1,7 @@
 /*
  * PK Standard design tokens.
  * Scoped under .pk-root so WordPress admin styles never leak in or out.
- * Light theme only. The plugin admin UI does not follow OS/WP dark mode: on a
+ * Light theme only. The plugin admin UIs do not follow OS/WP dark mode: on a
  * dark scheme the brand teal is too light to carry white button text (2.5:1),
  * and dark button text off-brands the UI, so we pin the light palette. (Peter,
  * 2026-07-14 — teal primary buttons showed black text under OS dark mode.)
