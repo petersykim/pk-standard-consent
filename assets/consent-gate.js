@@ -244,6 +244,21 @@
         });
     }
 
+    // EXPLICIT-analytics dataLayer event (2026-07-20). Tags that must never ride a
+    // regional opt-out DEFAULT (Clarity: its clarity.ms cookies are third-party, the
+    // one thing Lighthouse Best-Practices flags) fire on this event instead of All
+    // Pages. It fires ONLY when the grant is a real visitor choice: applyGrants()
+    // (accept / save / embed-allow — GPC opt-out turns analytics off, so no push)
+    // and the load path for a returning visitor whose stored, non-stale cookie
+    // (cfg.hasConsent) grants analytics. A regional default alone never pushes it.
+    function pushExplicitAnalytics(grants) {
+        if (!grants || !grants.analytics || window.__pkExplicitAnalytics) { return; }
+        window.__pkExplicitAnalytics = true;
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: 'pk_explicit_analytics' });
+        debug('pushed pk_explicit_analytics');
+    }
+
     function applyGrants(grants) {
         debug('applyGrants', grants);
         // cfg.granted is what consent-banner.js's populatePrefs() reads to restore toggle state
@@ -256,6 +271,7 @@
         if (cfg.consentModeV2 && typeof gtag === 'function') {
             gtag('consent', 'update', buildSignals(grants));
         }
+        pushExplicitAnalytics(grants);
         const categories = Object.keys(grants);
         for (let i = 0; i < categories.length; i++) {
             if (grants[categories[i]]) {
@@ -328,6 +344,12 @@
         // dispatches pk-sc-consent (which hides the banner), so skip the default unblock pass.
         if (maybeApplyGpc()) {
             return;
+        }
+        // Returning visitor with a stored, explicit, non-stale choice: re-announce the
+        // explicit analytics grant so event-fired tags (Clarity) run on every page of
+        // the visit — a regional default (no cfg.hasConsent) stays silent.
+        if (cfg.hasConsent) {
+            pushExplicitAnalytics(cfg.granted);
         }
         const categories = Object.keys(cfg.granted);
         for (let i = 0; i < categories.length; i++) {
